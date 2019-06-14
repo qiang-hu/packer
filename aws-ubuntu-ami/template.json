@@ -1,0 +1,59 @@
+{
+  "variables": {
+    "region": "/修改地区/",
+    "image": "/修改原始镜像/",
+    "instance_type": "修改实例类型",
+    "ssh_username": "ubuntu",
+    "volume_size": "30"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "{{user `region`}}",
+      "source_ami": "{{user `image`}}",
+      "instance_type": "{{user `instance_type`}}",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ssh_timeout": "10m",
+      "ssh_pty" : true,
+      "ami_name": "ubuntu-aws-docker-{{timestamp}}",
+      "ami_block_device_mappings": [ 
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": "{{user `volume_size`}}",
+          "volume_type": "gp2",
+          "delete_on_termination": true
+        } 
+      ],
+      "launch_block_device_mappings": [ 
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": "{{user `volume_size`}}",
+          "volume_type": "gp2",
+          "delete_on_termination": true
+        }        
+      ],
+      "tags": {
+          "OS_Version": "Ubuntu 18.04 LTS and Docker 18.06.1-ce",
+          "Release": "Latest",
+          "Base_AMI_Name": "{{ .SourceAMIName }}",
+          "Extra": "{{ .SourceAMITags.TagName }}",
+          "Packer": "true"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "shell.sh",
+      "destination": "/tmp/shell.sh"
+    },
+    {
+      "type": "shell",
+      "inline": [
+          "sudo chmod +x /tmp/shell.sh",
+          "sudo bash -x /tmp/shell.sh",
+          "sudo rm /tmp/shell.sh"
+      ]
+    }
+  ]
+}
